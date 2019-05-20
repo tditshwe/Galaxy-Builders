@@ -1,0 +1,39 @@
+﻿@model IEnumerable<GalaxyBuildersSystem.Models.Team>
+@using Microsoft.AspNet.Identity
+
+@{
+    ViewBag.Title = "Teams";
+}
+
+<h2>Teams</h2>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Description)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Productivity)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Productivity)
+            </td>
+            <td>
+                @*@if (User.Identity.GetUserId == item.)
+                {
+                    @Html.ActionLink("Manage my team", "Index")
+                }*@
+            </td>
+        </tr>
+    }
+
+</table>

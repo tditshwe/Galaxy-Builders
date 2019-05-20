@@ -21,9 +21,15 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Employees", "Index", "Employees")</li>
-                    <li>@Html.ActionLink("Teams", "Index", "Team")</li>
-                    <li>@Html.ActionLink("About", "About", "Home")</li>
+                    @if (ViewBag.Role == "Manager")
+                    {
+                        <li>@Html.ActionLink("My Team", "Index", "Employees")</li>
+                        <li>@Html.ActionLink("Other Teams", "Teams", "Employees")</li>
+                    }
+                    else if (ViewBag.Role == "Employee")
+                    {
+                        <li>@Html.ActionLink("My Tasks", "Index", "Tasks")</li>
+                    }
                 </ul>
                 @Html.Partial("_LoginPartial")
             </div>

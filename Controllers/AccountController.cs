@@ -83,7 +83,7 @@ namespace GalaxyBuildersSystem.Controllers
             switch (result)
             {
                 case SignInStatus.Success:
-                    return RedirectToLocal(returnUrl);
+                    return RedirectToAction("Index", "Employees"); ;
                 case SignInStatus.LockedOut:
                     return View("Lockout");
                 case SignInStatus.RequiresVerification:
@@ -144,6 +144,7 @@ namespace GalaxyBuildersSystem.Controllers
         public ActionResult Register()
         {
             ViewBag.Name = new SelectList(_appContext.Roles.ToList(), "Name", "Name");
+            ViewBag.TeamId = new SelectList(_context.Teams, "Id", "Description");
 
             return View();
         }
@@ -166,7 +167,9 @@ namespace GalaxyBuildersSystem.Controllers
                     employee.Id = Guid.Parse(user.Id);
                     employee.Name = model.Name;
                     employee.Lastname = model.Lastname;
-                    employee.TeamId = 1;
+                    employee.Productivity = 0;
+                    employee.TeamId = model.TeamId;
+                    employee.IsManager = model.UserRoles == "Manager" ? true : false;
 
                     _context.Employees.Add(employee);
                     _context.SaveChanges();
@@ -184,6 +187,7 @@ namespace GalaxyBuildersSystem.Controllers
                 }
 
                 ViewBag.Name = new SelectList(_appContext.Roles.ToList(), "Name", "Name");
+                ViewBag.TeamId = new SelectList(_context.Teams, "Id", "Description", employee.TeamId);
                 AddErrors(result);
             }
 
@@ -411,7 +415,7 @@ namespace GalaxyBuildersSystem.Controllers
         public ActionResult LogOff()
         {
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Login", "Account");
         }
 
         //

@@ -17,6 +17,7 @@ namespace GalaxyBuildersSystem.Models
         public string Lastname { get; set; }
 
         public decimal Productivity { get; set; }
+        public bool IsManager { get; set; }
         public int TeamId { get; set; }
         public virtual Team Team { get; set; }
         public virtual ICollection<GTask> Tasks { get; set; }

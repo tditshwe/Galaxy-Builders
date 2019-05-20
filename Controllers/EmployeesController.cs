@@ -6,7 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
-using GalaxyBuildersSystem;
+using Microsoft.AspNet.Identity;
 using GalaxyBuildersSystem.Models;
 
 namespace GalaxyBuildersSystem.Controllers
@@ -15,14 +15,44 @@ namespace GalaxyBuildersSystem.Controllers
     {
         private GalaxyContext db = new GalaxyContext();
 
-        // GET: Employees
+        // GET: Employees/
         public ActionResult Index()
         {
-            var employees = db.Employees.Include(e => e.Team);
-            return View(employees.ToList());
+            if (User.Identity.IsAuthenticated)
+            {
+                Guid userId = Guid.Parse(User.Identity.GetUserId());
+                var emp = db.Employees.Find(userId);
+                var employees = db.Employees.Include(e => e.Team).Where(e => e.TeamId == emp.TeamId && e.IsManager == false);
+                var manager = db.Employees.Where(e => e.IsManager == true).First();
+
+                ViewBag.Team = emp.Team.Description;
+                ViewBag.Manager = string.Format("{0} {1}", manager.Name, manager.Lastname);
+                ViewBag.Role = emp.IsManager ? "Manager" : "Employee";
+                return View(employees.ToList());
+            }
+
+            return RedirectToAction("Login", "Account");
         }
 
-        // GET: Employees/Details/5
+        // GET: Teams/
+        public ActionResult Teams()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                Guid userId = Guid.Parse(User.Identity.GetUserId());
+                var emp = db.Employees.Find(userId);
+
+                if (emp.IsManager)
+                {
+                    ViewBag.Role = "Manager";
+                    return View(db.Teams.ToList());
+                }
+            }
+
+            return View("Unauthorised");
+        }
+
+            // GET: Employees/Details/5
         public ActionResult Details(Guid? id)
         {
             if (id == null)

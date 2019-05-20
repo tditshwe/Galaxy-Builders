@@ -9,7 +9,10 @@ namespace GalaxyBuildersSystem
         {
             var teams = new List<Team>
             {
-                new Team { Id = 1, Description = "Default Team" }
+                new Team { Id = 1, Description = "Development Team" },
+                new Team { Id = 2, Description = "Marketing Team" },
+                new Team { Id = 3, Description = "Graphic Design Team" },
+                new Team { Id = 4, Description = "Hosting and Support Team" }
             };
 
             teams.ForEach(s => context.Teams.Add(s));
