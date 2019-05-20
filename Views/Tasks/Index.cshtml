@@ -29,26 +29,19 @@
                     @Html.DisplayFor(modelItem => item.DateAssigned)
                 </td>
                 <td>
-                    <div class="form-group">
-                        @Html.Label("Mark as Done", htmlAttributes: new { @class = "control-label col-md-2" })
-                        <div class="col-md-10">
-                            <div class="checkbox">
-                                @Html.EditorFor(model => item.IsDone)
-                                @Html.ValidationMessageFor(model => item.IsDone, "", new { @class = "text-danger" })
-                            </div>
-                        </div>
-                    </div>
+                    @if (item.IsDone)
+                    {
+                        <span>Done</span>
+                    }
+                    else
+                    {
+                        @Html.ActionLink("Mark as done", "MarkAsDone", new { id = item.Id })
+                    }
                 </td>
             </tr>
         }
 
     </table>
-
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-10">
-            <input type="submit" value="Save Changes" class="btn btn-default" />
-        </div>
-    </div>
 }
 else
 {

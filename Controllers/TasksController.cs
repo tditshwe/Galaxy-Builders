@@ -46,25 +46,22 @@ namespace GalaxyBuildersSystem.Controllers
             return View();
         }
 
-        // POST: Tasks/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult MarkAsDone(IEnumerable<GTask> tasks)
+        // GET: Tasks/MarkAsDone
+        public ActionResult MarkAsDone(int? id)
         {
-            if (ModelState.IsValid)
-            {
-                foreach (GTask tsk in tasks)
-                {
-                    db.Entry(tsk).State = EntityState.Modified;
-                }
 
-                db.SaveChanges();
-                return RedirectToAction("Index");
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            return View(tasks);
+            var task = db.Tasks.Find(id);
+
+            task.IsDone = true;
+            db.Entry(task).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return RedirectToAction("Index");
         }
 
         // GET: Tasks/Edit/5
