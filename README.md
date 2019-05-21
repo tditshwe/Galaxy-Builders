@@ -8,8 +8,8 @@ Users are assigned to teams of their choice and pick their role on registration.
 
 ## Prerequisites
 
-Visual Studio 2015 or later
-Microsoft SQL Server 2014 or later or Visual Studio LocalDb
+- Visual Studio 2015 or later
+- Microsoft SQL Server 2014 or later or Visual Studio LocalDb
 
 ## Setting up the database
 
@@ -41,4 +41,4 @@ The list of manager accounts and the teams they are managing
 - manager3@domain.com - Graphic Design Team
 - manager4@domain.com - Hosting and Support Team
 
-All users share the same password: P@ssw0rd
+All users share the same password: `P@ssw0rd`

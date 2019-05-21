@@ -19,9 +19,19 @@ namespace GalaxyBuildersSystem.Controllers
         // GET: Tasks
         public ActionResult Index()
         {
-            Guid userId = Guid.Parse(User.Identity.GetUserId());
-            var tasks = db.Employees.Find(userId).Tasks;
-            return View(tasks.ToList());
+            if (User.Identity.IsAuthenticated)
+            {
+                Guid userId = Guid.Parse(User.Identity.GetUserId());
+                var user = db.Employees.Find(userId);
+
+                if (user.IsManager)
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+
+                var tasks = user.Tasks;
+                return View(tasks.ToList());
+            }
+
+            return RedirectToAction("Login", "Account");
         }
 
         // GET: Tasks/Details/5
@@ -109,7 +119,10 @@ namespace GalaxyBuildersSystem.Controllers
             {
                 return HttpNotFound();
             }
-            return View(gTask);
+            db.Tasks.Remove(gTask);
+            db.SaveChanges();
+
+            return RedirectToAction("Index");
         }
 
         // POST: Tasks/Delete/5

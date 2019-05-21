@@ -7,15 +7,24 @@
 <h2>Tasks</h2>
 <h4>@Html.DisplayFor(model => model.Name) @Html.DisplayFor(model => model.Lastname)</h4>
 <br/>
+
 <table class="table">
-    <tr>
-        <th>
-            @Html.DisplayName("Description")
-        </th>
-        <th>
-            @Html.DisplayName("Status")
-        </th>
-    </tr>
+    @if (Model.Tasks.Count() > 0)
+    {
+        <tr>
+            <th>
+                @Html.DisplayName("Description")
+            </th>
+            <th>
+                @Html.DisplayName("Status")
+            </th>
+            <th></th>
+        </tr>
+    }
+    else
+    {
+        <label style="text-align:center">There are currently no tasks assigned to this employee</label>
+    }
     @foreach (var item in Model.Tasks)
     {
         <tr>
@@ -23,7 +32,17 @@
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
             <td>
-                Not Done
+                @if (item.IsDone)
+                {
+                    <font color="green"><b>Done</b></font>
+                }
+                else
+                {
+                    <span>Not done</span>
+                }
+            </td>
+            <td>
+                @Html.ActionLink("Remove Task", "RemoveTask", new { id = item.Id })
             </td>
         </tr>
     }

@@ -47,9 +47,11 @@ namespace GalaxyBuildersSystem.Controllers
                     ViewBag.Role = "Manager";
                     return View(db.Teams.ToList());
                 }
+
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
             }
 
-            return View("Unauthorised");
+            return RedirectToAction("Login", "Account");
         }
 
             // GET: Employees/Details/5
@@ -180,19 +182,86 @@ namespace GalaxyBuildersSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult AssignTask([Bind(Include = "Description, EmployeeId")] GTask task)
         {
-            if (ModelState.IsValid)
+            if (User.Identity.IsAuthenticated)
             {
-                //employee.Id = Guid.NewGuid();
-                task.DateAssigned = DateTime.Now;
-                task.IsDone = false;
-                Employee employee = db.Employees.Find(task.EmployeeId);
+                Guid userId = Guid.Parse(User.Identity.GetUserId());
+                var emp = db.Employees.Find(userId);
 
-                db.Tasks.Add(task);
-                db.SaveChanges();
-                return RedirectToAction("Edit", employee);
+                if (emp.IsManager)
+                {
+                    if (ModelState.IsValid)
+                    {
+                        task.DateAssigned = DateTime.Now;
+                        task.IsDone = false;
+                        Employee employee = db.Employees.Find(task.EmployeeId);
+
+                        CalculateProductivity(employee);
+                        db.Entry(employee).State = EntityState.Modified;
+                        db.Tasks.Add(task);
+                        db.SaveChanges();
+                        return RedirectToAction("Edit", employee);
+                    }
+
+                    return View(task);
+                }
+
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
             }
 
-            return View(task);
+            return RedirectToAction("Login", "Account");
+        }
+
+        // GET: Tasks/RemoveTask/{id}
+        public ActionResult RemoveTask(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            GTask gTask = db.Tasks.Find(id);
+            if (gTask == null)
+            {
+                return HttpNotFound();
+            }
+            db.Tasks.Remove(gTask);
+            db.SaveChanges();
+
+            return RedirectToAction("Edit", db.Employees.Find(gTask.EmployeeId)); ;
+        }
+
+        private void CalculateProductivity(Employee em)
+        {
+            decimal toDo = 0;
+            decimal done = 0;
+
+            foreach (GTask t in em.Tasks)
+            {
+                if (t.IsDone)
+                    done++;
+                else
+                    toDo++;
+            }
+
+            em.Productivity = Math.Round(done / toDo, 2, MidpointRounding.AwayFromZero);
+        }
+
+        private void TeamProductivity(Team team)
+        {
+            decimal toDo = 0;
+            decimal done = 0;
+
+            foreach (Employee e in team.Employees)
+            {
+                foreach (GTask t in e.Tasks)
+                {
+                    if (t.IsDone)
+                        done++;
+                    else
+                        toDo++;
+                }
+            }
+
+            team.Productivity = Math.Round(done / toDo, 2, MidpointRounding.AwayFromZero);
         }
 
         protected override void Dispose(bool disposing)
