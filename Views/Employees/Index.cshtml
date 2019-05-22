@@ -10,7 +10,7 @@
 <label>
     @if (ViewBag.Role == "Manager")
     {
-        <span>You are managing this team</span>
+        <span>@ViewBag.Manager (<i>You are managing this team</i>)</span>
     }
     else
     {
@@ -31,29 +31,38 @@
         }
     </tr>
 
-@foreach (var item in Model) {
+    @foreach (var item in Model) {
+        <tr>
+            <td>
+                @if (item.Id.ToString() == User.Identity.GetUserId())
+                {
+                    <b>@Html.DisplayFor(modelItem => item.Name) @Html.DisplayFor(modelItem => item.Lastname)</b>
+                }
+                else
+                {
+                    <span>@Html.DisplayFor(modelItem => item.Name) @Html.DisplayFor(modelItem => item.Lastname)</span>
+                }
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Productivity)
+            </td>
+            @if (ViewBag.Role == "Manager")
+            {
+                <td>
+                    @Html.ActionLink("Assign tasks", "Edit", new { id = item.Id }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                </td>
+            }
+        </tr>
+    }
+
     <tr>
-        <td>
-            @if (item.Id.ToString() == User.Identity.GetUserId())
-            {
-                <b>@Html.DisplayFor(modelItem => item.Name) @Html.DisplayFor(modelItem => item.Lastname)</b>
-            }
-            else
-            {
-                <span>@Html.DisplayFor(modelItem => item.Name) @Html.DisplayFor(modelItem => item.Lastname)</span>
-            }
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Productivity)
-        </td>
+        <td></td>
+        <td><b>Overall Team Productivity - @ViewBag.Productivity</b></td>
         @if (ViewBag.Role == "Manager")
         {
-            <td>
-                @Html.ActionLink("Assign tasks", "Edit", new { id = item.Id }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
-            </td>
+            <td></td>
         }
     </tr>
-}
 
 </table>

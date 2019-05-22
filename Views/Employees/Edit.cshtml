@@ -18,7 +18,9 @@
             <th>
                 @Html.DisplayName("Status")
             </th>
-            <th></th>
+            <th align="right">
+                Productivity: @Html.DisplayFor(modelItem => Model.Productivity)
+            </th>
         </tr>
     }
     else

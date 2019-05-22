@@ -21,11 +21,12 @@ namespace GalaxyBuildersSystem.Controllers
             if (User.Identity.IsAuthenticated)
             {
                 Guid userId = Guid.Parse(User.Identity.GetUserId());
-                var emp = db.Employees.Find(userId);
+                var emp = db.Employees.Find(userId);        
                 var employees = db.Employees.Include(e => e.Team).Where(e => e.TeamId == emp.TeamId && e.IsManager == false);
-                var manager = db.Employees.Where(e => e.IsManager == true).First();
+                var manager = db.Employees.Where(e => e.IsManager == true && e.TeamId == emp.TeamId).First();
 
                 ViewBag.Team = emp.Team.Description;
+                ViewBag.Productivity = emp.Team.Productivity;
                 ViewBag.Manager = string.Format("{0} {1}", manager.Name, manager.Lastname);
                 ViewBag.Role = emp.IsManager ? "Manager" : "Employee";
                 return View(employees.ToList());
@@ -54,19 +55,63 @@ namespace GalaxyBuildersSystem.Controllers
             return RedirectToAction("Login", "Account");
         }
 
-            // GET: Employees/Details/5
+        // GET: Employees/Ranking/
+        public ActionResult Ranking()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                var emp = db.Employees.Find(Guid.Parse(User.Identity.GetUserId()));
+
+                if (emp.IsManager)
+                {
+                    List<TeamRanking> ranking = new List<TeamRanking>();
+                    ViewBag.Role = "Manager";
+
+                    foreach (Team tm in db.Teams)
+                    {
+                        if (tm.Productivity > 0)
+                        {
+                            TeamRanking tr = new TeamRanking
+                            {
+                                Description = tm.Description,
+                                Productivity = tm.Productivity,
+                                BestEmployee = BestEmployee(tm)
+                            };
+
+                            ranking.Add(tr);
+                        }
+                    }
+
+                    ranking = ranking.OrderByDescending(r => r.Productivity).ToList();
+                    Rank(ranking);
+
+                    return View(ranking);
+                }
+
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
+            }
+
+            return RedirectToAction("Login", "Account");
+        }
+
+        // GET: Employees/Details/5
         public ActionResult Details(Guid? id)
         {
-            if (id == null)
+            if (User.Identity.IsAuthenticated)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                if (id == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                Employee employee = db.Employees.Find(id);
+                if (employee == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(employee);
             }
-            Employee employee = db.Employees.Find(id);
-            if (employee == null)
-            {
-                return HttpNotFound();
-            }
-            return View(employee);
+
+            return RedirectToAction("Login", "Account");
         }
 
         // GET: Employees/Create
@@ -98,17 +143,30 @@ namespace GalaxyBuildersSystem.Controllers
         // GET: Employees/Edit/5
         public ActionResult Edit(Guid? id)
         {
-            if (id == null)
+            if (User.Identity.IsAuthenticated)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                Guid userId = Guid.Parse(User.Identity.GetUserId());
+                var emp = db.Employees.Find(userId);
+
+                if (emp.IsManager)
+                {
+                    if (id == null)
+                    {
+                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                    }
+                    Employee employee = db.Employees.Find(id);
+                    if (employee == null)
+                    {
+                        return HttpNotFound();
+                    }
+                    ViewBag.TeamId = new SelectList(db.Teams, "Id", "Description", employee.TeamId);
+                    return View(employee);
+                }
+
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
             }
-            Employee employee = db.Employees.Find(id);
-            if (employee == null)
-            {
-                return HttpNotFound();
-            }
-            ViewBag.TeamId = new SelectList(db.Teams, "Id", "Description", employee.TeamId);
-            return View(employee);
+
+            return RedirectToAction("Login", "Account");
         }
 
         // POST: Employees/Edit/5
@@ -131,16 +189,29 @@ namespace GalaxyBuildersSystem.Controllers
         // GET: Employees/Delete/5
         public ActionResult Delete(Guid? id)
         {
-            if (id == null)
+            if (User.Identity.IsAuthenticated)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                Guid userId = Guid.Parse(User.Identity.GetUserId());
+                var emp = db.Employees.Find(userId);
+
+                if (emp.IsManager)
+                {
+                    if (id == null)
+                    {
+                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                    }
+                    Employee employee = db.Employees.Find(id);
+                    if (employee == null)
+                    {
+                        return HttpNotFound();
+                    }
+                    return View(employee);
+                }
+
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
             }
-            Employee employee = db.Employees.Find(id);
-            if (employee == null)
-            {
-                return HttpNotFound();
-            }
-            return View(employee);
+
+            return RedirectToAction("Login", "Account");
         }
 
         // POST: Employees/Delete/5
@@ -148,33 +219,61 @@ namespace GalaxyBuildersSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(Guid id)
         {
-            Employee employee = db.Employees.Find(id);
-            db.Employees.Remove(employee);
-            db.SaveChanges();
-            return RedirectToAction("Index");
+            if (User.Identity.IsAuthenticated)
+            {
+                Guid userId = Guid.Parse(User.Identity.GetUserId());
+                var emp = db.Employees.Find(userId);
+
+                if (emp.IsManager)
+                {
+                    Employee employee = db.Employees.Find(id);
+
+                    employee.Tasks.ToList().ForEach(e => db.Tasks.Remove(e));
+                    db.Employees.Remove(employee);
+                    db.SaveChanges();
+                    return RedirectToAction("Index");
+                }
+
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
+            }
+
+            return RedirectToAction("Login", "Account");
         }
 
         // GET: Employees/AssignTask/{id}
         public ActionResult AssignTask(Guid? id)
         {
-            if (id == null)
+            if (User.Identity.IsAuthenticated)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                Guid userId = Guid.Parse(User.Identity.GetUserId());
+                var emp = db.Employees.Find(userId);
+
+                if (emp.IsManager)
+                {
+                    if (id == null)
+                    {
+                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                    }
+
+                    Employee employee = db.Employees.Find(id);
+
+                    if (employee == null)
+                    {
+                        return HttpNotFound();
+                    }
+
+                    GTask task = new GTask
+                    {
+                        EmployeeId = employee.Id
+                    };
+
+                    return View(task);
+                }
+
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
             }
 
-            Employee employee = db.Employees.Find(id);
-
-            if (employee == null)
-            {
-                return HttpNotFound();
-            }
-
-            GTask task = new GTask
-            {
-                EmployeeId = employee.Id
-            };
-
-            return View(task);
+            return RedirectToAction("Login", "Account");
         }
 
         // POST: Employees/AssignTask/{id}
@@ -193,11 +292,15 @@ namespace GalaxyBuildersSystem.Controllers
                     {
                         task.DateAssigned = DateTime.Now;
                         task.IsDone = false;
-                        Employee employee = db.Employees.Find(task.EmployeeId);
-
-                        CalculateProductivity(employee);
-                        db.Entry(employee).State = EntityState.Modified;
+                        
                         db.Tasks.Add(task);
+                        db.SaveChanges();
+
+                        Employee employee = db.Employees.Find(task.EmployeeId);
+                        Productivity.TeamProductivity(employee.Team);
+                        Productivity.CalculateProductivity(employee);
+                        Productivity.TeamProductivity(employee.Team);
+                        db.Entry(employee).State = EntityState.Modified;
                         db.SaveChanges();
                         return RedirectToAction("Edit", employee);
                     }
@@ -226,42 +329,39 @@ namespace GalaxyBuildersSystem.Controllers
             db.Tasks.Remove(gTask);
             db.SaveChanges();
 
+            Employee employee = db.Employees.Find(gTask.EmployeeId);
+
+            Productivity.CalculateProductivity(employee);
+            Productivity.TeamProductivity(employee.Team);
+            db.Entry(employee).State = EntityState.Modified;
+            db.SaveChanges();
+
             return RedirectToAction("Edit", db.Employees.Find(gTask.EmployeeId)); ;
         }
 
-        private void CalculateProductivity(Employee em)
+        private Employee BestEmployee(Team team)
         {
-            decimal toDo = 0;
-            decimal done = 0;
-
-            foreach (GTask t in em.Tasks)
-            {
-                if (t.IsDone)
-                    done++;
-                else
-                    toDo++;
-            }
-
-            em.Productivity = Math.Round(done / toDo, 2, MidpointRounding.AwayFromZero);
-        }
-
-        private void TeamProductivity(Team team)
-        {
-            decimal toDo = 0;
-            decimal done = 0;
+            decimal max = 0;
+            Employee emp = null;
 
             foreach (Employee e in team.Employees)
             {
-                foreach (GTask t in e.Tasks)
+                if (e.Productivity > max)
                 {
-                    if (t.IsDone)
-                        done++;
-                    else
-                        toDo++;
+                    max = e.Productivity;
+                    emp = e;
                 }
             }
 
-            team.Productivity = Math.Round(done / toDo, 2, MidpointRounding.AwayFromZero);
+            return emp;
+        }
+
+        private void Rank(List<TeamRanking> ranking)
+        {
+            for (int i = 0; i < ranking.Count(); i++)
+            {
+                ranking[i].Rank = i + 1;
+            }
         }
 
         protected override void Dispose(bool disposing)

@@ -1,26 +1,29 @@
-﻿@model IEnumerable<GalaxyBuildersSystem.Models.Team>
-@using Microsoft.AspNet.Identity
+﻿@model IEnumerable<GalaxyBuildersSystem.Models.TeamRanking>
 
 @{
-    ViewBag.Title = "Teams";
+    ViewBag.Title = "Team Ranking";
 }
 
-<h2>Teams</h2>
+<h2>Team Ranking</h2>
 
 <table class="table">
     <tr>
+        <th>@Html.DisplayName("Rank")</th>
         <th>
             @Html.DisplayName("Department")
         </th>
         <th>
             @Html.DisplayNameFor(model => model.Productivity)
         </th>
-        <th></th>
+        <th>@Html.DisplayName("Best Employee")</th>
     </tr>
 
     @foreach (var item in Model)
     {
         <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Rank)
+            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
@@ -28,15 +31,9 @@
                 @Html.DisplayFor(modelItem => item.Productivity)
             </td>
             <td>
-                @*@if (User.Identity.GetUserId == item.)
-                {
-                    @Html.ActionLink("Manage my team", "Index")
-                }*@
+                <span>@Html.DisplayFor(modelItem => item.BestEmployee.Name) @Html.DisplayFor(modelItem => item.BestEmployee.Lastname)</span>
             </td>
         </tr>
     }
-</table>
 
-<div>
-    @Html.ActionLink("Team Ranking", "Ranking")
-</div>
+</table>

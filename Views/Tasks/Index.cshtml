@@ -16,7 +16,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.DateAssigned)
             </th>
-            <th></th>
+            <th align="right">
+                Productivity: @ViewBag.Productivity
+            </th>
         </tr>
 
         @foreach (var item in Model)

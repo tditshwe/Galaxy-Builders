@@ -1,10 +1,10 @@
 # Galaxy-Builders
 
-## Overview
+## Overview [Full stack developer (Option 1)]
 
 This is a system that helps managers measure productivity of their teams. Employees only have access to their team overview and the tasks assigned to them. They cannot see others teams information and the overall company productivity. Only managers can assign tasks to employees in their teams and can see only the detailed information of their teams. Managers also have acceess to an overview of the whole company’s productivity.
 
-Users are assigned to teams of their choice and pick their role on registration. If the user picks a `Manager` role, the current manager for the team they are assigned to will be replaced and be demoted to `Employee` role.
+Only teams with productivity greater than 0 get to appear on team rankings. Users are assigned to teams of their choice and pick their role on registration. If the user picks a `Manager` role, the current manager for the team they are assigned to will be replaced and be demoted to `Employee` role.
 
 ## Prerequisites
 

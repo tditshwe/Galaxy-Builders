@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using System.Data.Entity;
 using GalaxyBuildersSystem.Models;
 
 namespace GalaxyBuildersSystem.Controllers
@@ -170,6 +171,22 @@ namespace GalaxyBuildersSystem.Controllers
                     employee.Productivity = 0;
                     employee.TeamId = model.TeamId;
                     employee.IsManager = model.UserRoles == "Manager" ? true : false;
+
+                    if (model.UserRoles == "Manager")
+                    {
+                        var team = _context.Teams.Find(model.TeamId);
+
+                        foreach (Employee emp in team.Employees)
+                        {
+                            if (emp.IsManager)
+                            {
+                                //await UserManager.RemoveFromRoleAsync(emp.Id.ToString(), "Manager");
+                                //await UserManager.AddToRoleAsync(emp.Id.ToString(), "Employee");
+                                emp.IsManager = false;
+                                _context.Entry(emp).State = EntityState.Modified;
+                            }
+                        }
+                    }
 
                     _context.Employees.Add(employee);
                     _context.SaveChanges();
